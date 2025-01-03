@@ -7,10 +7,13 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.bus.api.IEventBus;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 @EventBusSubscriber(modid = Zauberei.MODID, bus = EventBusSubscriber.Bus.MOD)
 public class CreativeTabRegistry {
@@ -20,6 +23,7 @@ public class CreativeTabRegistry {
     public static void register(IEventBus eventBus) {
         TABS.register(eventBus);
     }
+
 
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> ZAUBEREI_TAB = TABS.register("zauberei_tab",
             ()-> CreativeModeTab.builder()
@@ -36,4 +40,13 @@ public class CreativeTabRegistry {
                         entries.accept(ItemRegistry.MAGICCLOTH.get());
                     })
                     .build());
+
+    @SubscribeEvent
+    public static void fillCreativeTabs(final BuildCreativeModeTabContentsEvent event){
+        if (event.getTab() == BuiltInRegistries.CREATIVE_MODE_TAB.get(CreativeModeTabs.FUNCTIONAL_BLOCKS)){
+
+        };
+    }
+
 }
+

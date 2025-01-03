@@ -23,6 +23,9 @@ import java.util.Set;
                             .then(Commands.literal("setmajor")
                                     .then(Commands.argument("major", StringArgumentType.word())
                                             .executes(CommandHandler::setMajorCommand)))
+                            .then(Commands.literal("checktag")
+                                    .then(Commands.argument("player", StringArgumentType.word())
+                                            .executes(CommandHandler::checkTagCommand)))
             );
         }
 
@@ -41,7 +44,25 @@ import java.util.Set;
             }
 
             PlayerDataHelper.setMajor(player, major);
+            source.sendSuccess(() -> Component.literal("Mayor-Typ gesetzt: " + major), true);
 
             return Command.SINGLE_SUCCESS;
         }
+
+        private static int checkTagCommand(CommandContext<CommandSourceStack> context) {
+            String playerName = StringArgumentType.getString(context, "player");
+            CommandSourceStack source = context.getSource();
+
+            ServerPlayer targetPlayer = source.getServer().getPlayerList().getPlayerByName(playerName);
+            if (targetPlayer == null) {
+                source.sendFailure(Component.literal("Spieler " + playerName + " wurde nicht gefunden."));
+                return Command.SINGLE_SUCCESS;
+            }
+
+            String major = PlayerDataHelper.getMajor(targetPlayer);
+            source.sendSuccess(() -> Component.literal( "Player:" + playerName + " hat den Major-Typ: " + major), true);
+
+            return Command.SINGLE_SUCCESS;
+        }
+
     }

@@ -3,6 +3,7 @@ package com.gilfort.zauberei.item.armor;
 import com.gilfort.zauberei.Zauberei;
 import com.gilfort.zauberei.registries.ArmorMaterialRegistry;
 import com.gilfort.zauberei.helpers.PlayerDataHelper;
+import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -12,12 +13,19 @@ import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent;
+import net.neoforged.neoforge.event.tick.*;
+import net.neoforged.neoforge.common.*;
+import org.apache.commons.lang3.ObjectUtils;
+
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ArmorEffects {
+public class ArmorEffects{
     private static final Map<String, Map<ArmorMaterial, Map<Integer, List<MobEffectInstance>>>> MAJOR_EFFECT_MAP = new HashMap<>();
 
     static {
@@ -51,6 +59,8 @@ public class ArmorEffects {
 //                )
 //        ));
     }
+
+
 
     public static void checkAndApplyEffects(Entity entity, Level level) {
         if (entity instanceof ServerPlayer player && !level.isClientSide()) {

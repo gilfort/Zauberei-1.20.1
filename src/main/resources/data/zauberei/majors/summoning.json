@@ -78,96 +78,96 @@
         "magiccloth": {
           "4": {
             "name": "Bonus Health",
-            "attribute": "zauberei:magic",
+            "attribute": "minecraft:MAX_HEALTH",
             "amount": 4.0,
             "operation": "addition"
           }
         }
       }
     },
-    "year 2": {
-      "effects": {
-        "magiccloth": {
-          "1": {
-            "name": "Single Piece Effect",
-            "effects": [
-              {
-                "name": "Minor Resistance",
-                "effect": "minecraft:resistance",
-                "duration": 200,
-                "amplifier": 0
-              }
-            ]
-          },
-          "2": {
-            "name": "Two Pieces Effect",
-            "effects": [
-              {
-                "name": "Moderate Resistance",
-                "effect": "minecraft:resistance",
-                "duration": 200,
-                "amplifier": 1
-              },
-              {
-                "name": "Minor Fire Resistance",
-                "effect": "minecraft:fire_resistance",
-                "duration": 200,
-                "amplifier": 0
-              }
-            ]
-          },
-          "3": {
-            "name": "Three Pieces Effect",
-            "effects": [
-              {
-                "name": "Enhanced Resistance",
-                "effect": "minecraft:resistance",
-                "duration": 200,
-                "amplifier": 2
-              },
-              {
-                "name": "Moderate Fire Resistance",
-                "effect": "minecraft:fire_resistance",
-                "duration": 200,
-                "amplifier": 1
-              }
-            ]
-          },
-          "4": {
-            "name": "Full Set Effect",
-            "effects": [
-              {
-                "name": "Advanced Resistance",
-                "effect": "minecraft:resistance",
-                "duration": 200,
-                "amplifier": 3
-              },
-              {
-                "name": "Enhanced Fire Resistance",
-                "effect": "minecraft:fire_resistance",
-                "duration": 200,
-                "amplifier": 2
-              },
-              {
-                "name": "Major Strength",
-                "effect": "minecraft:strength",
-                "duration": 200,
-                "amplifier": 2
-              }
-            ]
-          }
+    "year": "2",
+    "effects": {
+      "magiccloth": {
+        "1": {
+          "name": "Single Piece Effect",
+          "effects": [
+            {
+              "name": "Minor Resistance",
+              "effect": "minecraft:resistance",
+              "duration": 200,
+              "amplifier": 0
+            }
+          ]
+        },
+        "2": {
+          "name": "Two Pieces Effect",
+          "effects": [
+            {
+              "name": "Moderate Resistance",
+              "effect": "minecraft:resistance",
+              "duration": 200,
+              "amplifier": 1
+            },
+            {
+              "name": "Minor Fire Resistance",
+              "effect": "minecraft:fire_resistance",
+              "duration": 200,
+              "amplifier": 0
+            }
+          ]
+        },
+        "3": {
+          "name": "Three Pieces Effect",
+          "effects": [
+            {
+              "name": "Enhanced Resistance",
+              "effect": "minecraft:resistance",
+              "duration": 200,
+              "amplifier": 2
+            },
+            {
+              "name": "Moderate Fire Resistance",
+              "effect": "minecraft:fire_resistance",
+              "duration": 200,
+              "amplifier": 1
+            }
+          ]
+        },
+        "4": {
+          "name": "Full Set Effect",
+          "effects": [
+            {
+              "name": "Advanced Resistance",
+              "effect": "minecraft:resistance",
+              "duration": 200,
+              "amplifier": 3
+            },
+            {
+              "name": "Enhanced Fire Resistance",
+              "effect": "minecraft:fire_resistance",
+              "duration": 200,
+              "amplifier": 2
+            },
+            {
+              "name": "Major Strength",
+              "effect": "minecraft:strength",
+              "duration": 200,
+              "amplifier": 2
+            }
+          ]
         }
-      },
-      "attributes": {
-        "magiccloth": {
-          "4": {
-            "name": "Advanced Bonus Health",
-            "attribute": "zauberei:magic",
-            "amount": 6.0,
-            "operation": "addition"
-          }
+      }
+    },
+    "attributes": {
+      "magiccloth": {
+        "4": {
+          "name": "Advanced Bonus Health",
+          "attribute": "minecraft:MAX_HEALTH",
+          "amount": 6.0,
+          "operation": "addition"
         }
       }
     }
   }
 }
+

@@ -17,6 +17,7 @@ public class MagicclothArmorItem extends ExtendedArmorItem {
 
     public MagicclothArmorItem(Type slot, Properties settings){
         super(ArmorMaterialRegistry.MAGICCLOTH, slot, settings);
+
     }
 
 

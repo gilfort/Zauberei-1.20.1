@@ -21,6 +21,7 @@ import java.util.function.Supplier;
 
 public class ArmorMaterialRegistry {
 
+
     private static final DeferredRegister<ArmorMaterial> ARMOR_MATERIALS = DeferredRegister.create(Registries.ARMOR_MATERIAL, Zauberei.MODID);
 
     public static void register(IEventBus eventBus) {

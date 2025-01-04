@@ -51,7 +51,7 @@ public class ArmorEffects {
         JsonObject effects = majorData.getAsJsonObject("effects");
         for (ItemStack armorStack : player.getArmorSlots()) {
             if (armorStack.getItem() instanceof ArmorItem armorItem) {
-                ArmorMaterial material = armorItem.getMaterial().value();
+                ArmorMaterial material = armorItem.getMaterial();
                 String materialName = material.toString().toLowerCase();
 
                 if (effects.has(materialName)) {

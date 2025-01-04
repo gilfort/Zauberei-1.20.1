@@ -1,81 +1,127 @@
 package com.gilfort.zauberei.item.armor;
 
 import com.gilfort.zauberei.Zauberei;
-import com.gilfort.zauberei.registries.ArmorMaterialRegistry;
 import com.gilfort.zauberei.helpers.PlayerDataHelper;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent;
-import net.neoforged.neoforge.event.tick.*;
-import net.neoforged.neoforge.common.*;
-import org.apache.commons.lang3.ObjectUtils;
 
+import com.google.gson.JsonObject;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-public class ArmorEffects{
-    private static final Map<String, Map<ArmorMaterial, Map<Integer, List<MobEffectInstance>>>> MAJOR_EFFECT_MAP = new HashMap<>();
-
-    static {
-        // Effekte für Magiccloth basierend auf Major-Strings
-        MAJOR_EFFECT_MAP.put("Summoning", Map.of(
-                ArmorMaterialRegistry.MAGICCLOTH.get(), Map.of(
-                        2, List.of(new MobEffectInstance(MobEffects.JUMP, 200, 1, false, false)),
-                        4, List.of(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 200, 2, false, false))
-                )
-        ));
-
-        MAJOR_EFFECT_MAP.put("Hemomagic", Map.of(
-                ArmorMaterialRegistry.MAGICCLOTH.get(), Map.of(
-                        2, List.of(new MobEffectInstance(MobEffects.DARKNESS, 200, 0, false, false)),
-                        4, List.of(new MobEffectInstance(MobEffects.REGENERATION, 200, 1, false, false))
-                )
-        ));
-
-//        // Effekte für Magicmetal basierend auf Major-Strings
-//        MAJOR_EFFECT_MAP.put("Elemental", Map.of(
-//                ArmorMaterialRegistry.MAGICMETAL.get(), Map.of(
-//                        2, List.of(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 200, 0, false, false)),
-//                        4, List.of(new MobEffectInstance(MobEffects.DIG_SPEED, 200, 2, false, false))
-//                )
-//        ));
-//
-//        MAJOR_EFFECT_MAP.put("MagicalCombat", Map.of(
-//                ArmorMaterialRegistry.MAGICMETAL.get(), Map.of(
-//                        2, List.of(new MobEffectInstance(MobEffects.RESISTANCE, 200, 1, false, false)),
-//                        4, List.of(new MobEffectInstance(MobEffects.STRENGTH, 200, 3, false, false))
-//                )
-//        ));
-    }
-
-
+public class ArmorEffects {
 
     public static void checkAndApplyEffects(Entity entity, Level level) {
         if (entity instanceof ServerPlayer player && !level.isClientSide()) {
-            // Lade den Major-String des Spielers
             String major = PlayerDataHelper.getMajor(player);
+            int year = PlayerDataHelper.getYear(player);
 
-            if (MAJOR_EFFECT_MAP.containsKey(major)) {
-                Map<ArmorMaterial, Map<Integer, List<MobEffectInstance>>> materialEffects = MAJOR_EFFECT_MAP.get(major);
+            if (major == null || year <= 0) return;
 
-                for (Map.Entry<ArmorMaterial, Map<Integer, List<MobEffectInstance>>> entry : materialEffects.entrySet()) {
-                    ArmorMaterial material = entry.getKey();
-                    Map<Integer, List<MobEffectInstance>> effectsByPieces = entry.getValue();
+            // Lade die JSON-Daten für den Major
+            ResourceLocation resourceLocation = ResourceLocation.fromNamespaceAndPath(Zauberei.MODID, "majors/" + major.toLowerCase() + ".json");
+            JsonObject data = Zauberei.getData(resourceLocation.toString());
 
+            if (data == null) return;
+
+            applyEffectsFromJson(player, data, year, major);
+            applyAttributesFromJson(player, data, year, major);
+        }
+    }
+
+    private static void applyEffectsFromJson(Player player, JsonObject data, int year, String major) {
+        if (!data.has("majors")) return;
+
+        JsonObject majors = data.getAsJsonObject("majors");
+        if (!majors.has(major)) return;
+
+        JsonObject majorData = majors.getAsJsonObject(major);
+        if (!majorData.has("effects")) return;
+
+        JsonObject effects = majorData.getAsJsonObject("effects");
+        for (ItemStack armorStack : player.getArmorSlots()) {
+            if (armorStack.getItem() instanceof ArmorItem armorItem) {
+                ArmorMaterial material = armorItem.getMaterial().value();
+                String materialName = material.toString().toLowerCase();
+
+                if (effects.has(materialName)) {
+                    JsonObject materialEffects = effects.getAsJsonObject(materialName);
                     int armorPieces = countArmorPieces(player, material);
-                    applyEffects(player, effectsByPieces, armorPieces);
+
+                    if (materialEffects.has(String.valueOf(armorPieces))) {
+                        for (var effectElement : materialEffects.getAsJsonArray(String.valueOf(armorPieces))) {
+                            JsonObject effectData = effectElement.getAsJsonObject();
+                            String effectFullName = effectData.get("effect").getAsString();
+                            String[] effectParts = effectFullName.split(":");
+                            if (effectParts.length != 2) {
+                                System.err.println("Invalid effect format: " + effectFullName);
+                                continue;
+                            }
+                            String effectNamespace = effectParts[0];
+                            String effectName = effectParts[1];
+                            int amplifier = effectData.get("amplifier").getAsInt();
+
+                            Holder<MobEffect> effectHolder = BuiltInRegistries.MOB_EFFECT.getHolder(ResourceLocation.fromNamespaceAndPath(effectNamespace, effectName)).orElse(null);
+                            if (effectHolder != null) {
+                                player.addEffect(new MobEffectInstance(effectHolder, 200, amplifier));
+                            } else {
+                                System.err.println("Invalid MobEffect: " + effectNamespace + ":" + effectName);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private static void applyAttributesFromJson(Player player, JsonObject data, int year, String major) {
+        if (!data.has("majors")) return;
+
+        JsonObject majors = data.getAsJsonObject("majors");
+        if (!majors.has(major)) return;
+
+        JsonObject majorData = majors.getAsJsonObject(major);
+        if (!majorData.has("attributes")) return;
+
+        JsonObject attributes = majorData.getAsJsonObject("attributes");
+        for (ItemStack armorStack : player.getArmorSlots()) {
+            if (armorStack.getItem() instanceof ArmorItem armorItem) {
+                ArmorMaterial material = armorItem.getMaterial().value();
+                String materialName = material.toString().toLowerCase();
+
+                if (attributes.has(materialName)) {
+                    JsonObject materialAttributes = attributes.getAsJsonObject(materialName);
+                    int armorPieces = countArmorPieces(player, material);
+
+                    if (materialAttributes.has(String.valueOf(armorPieces))) {
+                        JsonObject attributeData = materialAttributes.getAsJsonObject(String.valueOf(armorPieces));
+                        String attributeNamespace = attributeData.has("namespace") ? attributeData.get("namespace").getAsString() : "minecraft";
+                        String attributeName = attributeData.get("attribute").getAsString();
+                        double amount = attributeData.get("amount").getAsDouble();
+                        String operation = attributeData.get("operation").getAsString();
+
+                        Holder<Attribute> attribute = BuiltInRegistries.ATTRIBUTE.getHolder(ResourceLocation.fromNamespaceAndPath(attributeNamespace, attributeName)).orElse(null);
+                        if (attribute != null && player.getAttribute(attribute) != null) {
+                            AttributeModifier modifier = new AttributeModifier(
+                                    ResourceLocation.fromNamespaceAndPath(attributeNamespace, attributeName),
+                                    amount,
+                                    AttributeModifier.Operation.valueOf(operation.toUpperCase())
+                            );
+                            player.getAttribute(attribute).addTransientModifier(modifier);
+                        } else {
+                            System.err.println("Invalid attribute: " + attributeNamespace + ":" + attributeName);
+                        }
+                    }
                 }
             }
         }
@@ -92,13 +138,17 @@ public class ArmorEffects{
         return count;
     }
 
-    private static void applyEffects(Player player, Map<Integer, List<MobEffectInstance>> effectsByPieces, int armorPieces) {
-        if (effectsByPieces.containsKey(armorPieces)) {
-            List<MobEffectInstance> effects = effectsByPieces.get(armorPieces);
-            for (MobEffectInstance effect : effects) {
-                player.addEffect(new MobEffectInstance(effect.getEffect(),
-                        effect.getDuration(), effect.getAmplifier(), effect.isAmbient(), effect.isVisible()));
-            }
+    // Debug-Methode
+    public static void testArmorEffects(Player player, String major) {
+        ResourceLocation resourceLocation = ResourceLocation.fromNamespaceAndPath(Zauberei.MODID, "majors/" + major.toLowerCase() + ".json");
+        JsonObject data = Zauberei.getData(resourceLocation.toString());
+
+        if (data != null) {
+            System.out.println("ArmorEffects data for " + major + ":");
+            System.out.println("Effects: " + data.get("effects"));
+            System.out.println("Attributes: " + data.get("attributes"));
+        } else {
+            System.err.println("No ArmorEffects data loaded for major: " + major);
         }
     }
 }
